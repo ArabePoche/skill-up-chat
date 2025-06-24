@@ -1,6 +1,5 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, Send, Mic, Camera, Paperclip, Play, MoreVertical, Phone, Video } from 'lucide-react';
+import { ArrowLeft, Send, Mic, Camera, Paperclip, Play, MoreVertical, Phone, Video, CheckCircle, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import EmojiPicker from './EmojiPicker';
 
@@ -12,6 +11,8 @@ interface Message {
   fileType?: string;
   fileName?: string;
   author?: string;
+  isValidated?: boolean;
+  canValidate?: boolean;
 }
 
 interface ChatInterfaceProps {
@@ -22,9 +23,11 @@ interface ChatInterfaceProps {
     duration: string;
   };
   onBack: () => void;
+  isTeacherView?: boolean;
+  studentName?: string;
 }
 
-const ChatInterface: React.FC<ChatInterfaceProps> = ({ lesson, onBack }) => {
+const ChatInterface: React.FC<ChatInterfaceProps> = ({ lesson, onBack, isTeacherView = false, studentName }) => {
   const [message, setMessage] = useState('');
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -32,7 +35,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ lesson, onBack }) => {
     {
       id: 1,
       type: 'system',
-      content: 'Bienvenue dans cette leçon ! Regardez d\'abord la vidéo ci-dessus.',
+      content: isTeacherView 
+        ? `Discussion avec ${studentName}` 
+        : 'Bienvenue dans cette leçon ! Regardez d\'abord la vidéo ci-dessus.',
       timestamp: new Date(Date.now() - 5 * 60000)
     },
     {
@@ -41,8 +46,18 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ lesson, onBack }) => {
       content: 'Exercice 1: Créez votre premier composant React',
       fileType: 'image',
       fileName: 'exercice-1.png',
-      timestamp: new Date(Date.now() - 3 * 60000)
-    }
+      timestamp: new Date(Date.now() - 3 * 60000),
+      canValidate: isTeacherView
+    },
+    ...(isTeacherView ? [{
+      id: 3,
+      type: 'user' as const,
+      content: 'Voici mon exercice terminé !',
+      fileType: 'image',
+      fileName: 'mon-exercice.jpg',
+      timestamp: new Date(Date.now() - 1 * 60000),
+      canValidate: true
+    }] : [])
   ]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -66,25 +81,52 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ lesson, onBack }) => {
     if (message.trim()) {
       const newMessage: Message = {
         id: messages.length + 1,
-        type: 'user',
+        type: isTeacherView ? 'teacher' : 'user',
         content: message,
+        author: isTeacherView ? 'Prof. Martin' : undefined,
         timestamp: new Date()
       };
       setMessages([...messages, newMessage]);
       setMessage('');
       
-      // Simulate teacher response
+      // Simulate response only if not teacher view
+      if (!isTeacherView) {
+        setTimeout(() => {
+          const randomTeacher = onlineTeachers[Math.floor(Math.random() * onlineTeachers.length)];
+          const teacherResponse: Message = {
+            id: messages.length + 2,
+            type: 'teacher',
+            content: 'Excellente réponse ! Votre compréhension est correcte. Vous pouvez passer au prochain exercice.',
+            author: randomTeacher.name,
+            timestamp: new Date()
+          };
+          setMessages(prev => [...prev, teacherResponse]);
+        }, 2000);
+      }
+    }
+  };
+
+  const validateExercise = (messageId: number, isValid: boolean) => {
+    setMessages(prev => prev.map(msg => 
+      msg.id === messageId 
+        ? { ...msg, isValidated: isValid, canValidate: false }
+        : msg
+    ));
+
+    // If validated, add next exercise
+    if (isValid) {
       setTimeout(() => {
-        const randomTeacher = onlineTeachers[Math.floor(Math.random() * onlineTeachers.length)];
-        const teacherResponse: Message = {
-          id: messages.length + 2,
-          type: 'teacher',
-          content: 'Excellente réponse ! Votre compréhension est correcte. Vous pouvez passer au prochain exercice.',
-          author: randomTeacher.name,
-          timestamp: new Date()
+        const nextExercise: Message = {
+          id: messages.length + 10,
+          type: 'exercise',
+          content: 'Exercice 2: Ajoutez des props à votre composant',
+          fileType: 'video',
+          fileName: 'exercice-2-demo.mp4',
+          timestamp: new Date(),
+          canValidate: isTeacherView
         };
-        setMessages(prev => [...prev, teacherResponse]);
-      }, 2000);
+        setMessages(prev => [...prev, nextExercise]);
+      }, 1000);
     }
   };
 
@@ -101,11 +143,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ lesson, onBack }) => {
     if (file) {
       const newMessage: Message = {
         id: messages.length + 1,
-        type: 'user',
+        type: isTeacherView ? 'teacher' : 'user',
         content: `Fichier envoyé: ${file.name}`,
         fileType: file.type.startsWith('image/') ? 'image' : file.type.startsWith('video/') ? 'video' : 'file',
         fileName: file.name,
-        timestamp: new Date()
+        author: isTeacherView ? 'Prof. Martin' : undefined,
+        timestamp: new Date(),
+        canValidate: !isTeacherView
       };
       setMessages([...messages, newMessage]);
     }
@@ -137,13 +181,16 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ lesson, onBack }) => {
             </button>
             <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mr-3">
               <span className="text-white font-bold text-sm">
-                {lesson.title.charAt(0)}
+                {isTeacherView ? '👨‍🏫' : lesson.title.charAt(0)}
               </span>
             </div>
             <div className="flex-1 min-w-0">
               <h1 className="font-semibold text-lg truncate">{lesson.title}</h1>
               <p className="text-xs text-white/80">
-                {onlineTeachers.length} prof{onlineTeachers.length > 1 ? 's' : ''} en ligne • {lesson.duration}
+                {isTeacherView 
+                  ? `Discussion avec ${studentName}`
+                  : `${onlineTeachers.length} prof${onlineTeachers.length > 1 ? 's' : ''} en ligne • ${lesson.duration}`
+                }
               </p>
             </div>
           </div>
@@ -161,26 +208,30 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ lesson, onBack }) => {
           </div>
         </div>
         
-        {/* Indicateur des profs en ligne */}
-        <div className="flex items-center space-x-2 mt-2">
-          {onlineTeachers.map((teacher) => (
-            <div key={teacher.id} className="flex items-center bg-white/10 rounded-full px-2 py-1">
-              <span className="text-xs mr-1">{teacher.avatar}</span>
-              <span className="text-xs">{teacher.name.split(' ')[1]}</span>
-            </div>
-          ))}
-        </div>
+        {/* Indicateur des profs en ligne - seulement pour vue élève */}
+        {!isTeacherView && (
+          <div className="flex items-center space-x-2 mt-2">
+            {onlineTeachers.map((teacher) => (
+              <div key={teacher.id} className="flex items-center bg-white/10 rounded-full px-2 py-1">
+                <span className="text-xs mr-1">{teacher.avatar}</span>
+                <span className="text-xs">{teacher.name.split(' ')[1]}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Video Section */}
-      <div className="bg-black p-4">
-        <div className="aspect-video bg-gray-900 rounded-lg flex items-center justify-center relative">
-          <Play size={60} className="text-white/70" />
-          <div className="absolute bottom-4 right-4 bg-black/50 text-white px-2 py-1 rounded text-sm">
-            {lesson.duration}
+      {/* Video Section - seulement pour vue élève */}
+      {!isTeacherView && (
+        <div className="bg-black p-4">
+          <div className="aspect-video bg-gray-900 rounded-lg flex items-center justify-center relative">
+            <Play size={60} className="text-white/70" />
+            <div className="absolute bottom-4 right-4 bg-black/50 text-white px-2 py-1 rounded text-sm">
+              {lesson.duration}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Messages */}
       <div className="flex-1 p-4 space-y-4 custom-scrollbar overflow-y-auto">
@@ -239,6 +290,37 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ lesson, onBack }) => {
                       </div>
                     </div>
                   )}
+                  
+                  {/* Boutons de validation pour les profs */}
+                  {isTeacherView && msg.canValidate && !msg.isValidated && (
+                    <div className="flex space-x-2 mt-2">
+                      <button
+                        onClick={() => validateExercise(msg.id, true)}
+                        className="flex items-center space-x-1 bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600"
+                      >
+                        <CheckCircle size={12} />
+                        <span>Valider</span>
+                      </button>
+                      <button
+                        onClick={() => validateExercise(msg.id, false)}
+                        className="flex items-center space-x-1 bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600"
+                      >
+                        <XCircle size={12} />
+                        <span>Refuser</span>
+                      </button>
+                    </div>
+                  )}
+                  
+                  {/* Indicateur de validation */}
+                  {msg.isValidated !== undefined && (
+                    <div className={`flex items-center space-x-1 mt-2 text-xs ${
+                      msg.isValidated ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      {msg.isValidated ? <CheckCircle size={12} /> : <XCircle size={12} />}
+                      <span>{msg.isValidated ? 'Validé' : 'Refusé'}</span>
+                    </div>
+                  )}
+                  
                   <div className="text-xs text-gray-500 mt-1 text-right">
                     {formatTime(msg.timestamp)}
                   </div>

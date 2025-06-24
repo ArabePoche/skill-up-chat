@@ -3,11 +3,13 @@ import React, { useState } from 'react';
 import { ArrowLeft, Play, Users, Star, Clock, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ChatInterface from '@/components/ChatInterface';
+import TeacherView from '@/components/TeacherView';
 
 const Cours = () => {
   const [selectedFormation, setSelectedFormation] = useState(null);
   const [selectedLevel, setSelectedLevel] = useState(null);
   const [selectedLesson, setSelectedLesson] = useState(null);
+  const [userRole, setUserRole] = useState('student'); // 'student' ou 'teacher'
 
   // Données de démonstration
   const formations = [
@@ -19,6 +21,7 @@ const Cours = () => {
       progress: 65,
       students: 324,
       rating: 4.8,
+      isTeacher: false, // L'utilisateur est-il prof de cette formation ?
       levels: [
         {
           id: 1,
@@ -57,6 +60,7 @@ const Cours = () => {
       progress: 30,
       students: 156,
       rating: 4.9,
+      isTeacher: true, // L'utilisateur est prof de cette formation
       levels: [
         {
           id: 3,
@@ -80,6 +84,15 @@ const Cours = () => {
       <ChatInterface
         lesson={selectedLesson}
         onBack={() => setSelectedLesson(null)}
+      />
+    );
+  }
+
+  if (selectedFormation && selectedFormation.isTeacher) {
+    return (
+      <TeacherView
+        formation={selectedFormation}
+        onBack={() => setSelectedFormation(null)}
       />
     );
   }
@@ -211,17 +224,45 @@ const Cours = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-16 md:pt-16 md:pb-0">
-      {/* Header */}
+      {/* Header avec toggle prof/élève */}
       <div className="bg-white shadow-sm sticky top-0 md:top-16">
         <div className="p-4">
-          <h1 className="text-2xl font-bold">Mes Formations</h1>
-          <p className="text-gray-600">Continuez votre apprentissage</p>
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <h1 className="text-2xl font-bold">Mes Formations</h1>
+              <p className="text-gray-600">Continuez votre apprentissage</p>
+            </div>
+            <div className="flex bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setUserRole('student')}
+                className={`px-3 py-1 rounded text-sm transition-colors ${
+                  userRole === 'student' 
+                    ? 'bg-[#25d366] text-white' 
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                👨‍🎓 Élève
+              </button>
+              <button
+                onClick={() => setUserRole('teacher')}
+                className={`px-3 py-1 rounded text-sm transition-colors ${
+                  userRole === 'teacher' 
+                    ? 'bg-[#25d366] text-white' 
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                👨‍🏫 Prof
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Formations Cards */}
       <div className="p-4 space-y-4">
-        {formations.map((formation) => (
+        {formations
+          .filter(formation => userRole === 'teacher' ? formation.isTeacher : !formation.isTeacher)
+          .map((formation) => (
           <div
             key={formation.id}
             onClick={() => setSelectedFormation(formation)}
@@ -232,8 +273,13 @@ const Cours = () => {
                 <Play size={40} className="text-[#25d366]" />
               </div>
               <div className="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
-                {formation.progress}% complété
+                {userRole === 'teacher' ? `${formation.students} élèves` : `${formation.progress}% complété`}
               </div>
+              {formation.isTeacher && (
+                <div className="absolute top-2 left-2 bg-[#25d366] text-white px-2 py-1 rounded text-xs">
+                  👨‍🏫 Professeur
+                </div>
+              )}
             </div>
 
             <div className="p-4">
@@ -251,13 +297,15 @@ const Cours = () => {
                 </div>
               </div>
 
-              {/* Progress Bar */}
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-[#25d366] h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${formation.progress}%` }}
-                ></div>
-              </div>
+              {/* Progress Bar - seulement pour les élèves */}
+              {!formation.isTeacher && (
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-[#25d366] h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${formation.progress}%` }}
+                  ></div>
+                </div>
+              )}
             </div>
           </div>
         ))}
