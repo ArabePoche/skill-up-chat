@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ArrowLeft, Play, Users, Star, Clock } from 'lucide-react';
+import { ArrowLeft, Play, Users, Star, Clock, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ChatInterface from '@/components/ChatInterface';
 
@@ -25,6 +25,9 @@ const Cours = () => {
           name: 'Niveau Débutant',
           avatar: '/placeholder.svg',
           description: 'Bases de React',
+          lastMessage: 'Introduction aux composants terminée',
+          timestamp: '14:32',
+          unread: 2,
           lessons: [
             { id: 1, title: 'Introduction à React', completed: true, duration: '15 min' },
             { id: 2, title: 'Composants et Props', completed: true, duration: '20 min' },
@@ -36,6 +39,9 @@ const Cours = () => {
           name: 'Niveau Intermédiaire',
           avatar: '/placeholder.svg',
           description: 'Concepts avancés',
+          lastMessage: 'Context API - Exercice en attente',
+          timestamp: 'Hier',
+          unread: 0,
           lessons: [
             { id: 4, title: 'Context API', completed: false, duration: '30 min' },
             { id: 5, title: 'Gestion d\'état', completed: false, duration: '35 min' }
@@ -57,6 +63,9 @@ const Cours = () => {
           name: 'Introduction',
           avatar: '/placeholder.svg',
           description: 'Bases du Design Thinking',
+          lastMessage: 'Nouveau exercice disponible',
+          timestamp: '09:15',
+          unread: 1,
           lessons: [
             { id: 6, title: 'Qu\'est-ce que le Design Thinking ?', completed: true, duration: '12 min' },
             { id: 7, title: 'Les 5 étapes', completed: false, duration: '18 min' }
@@ -77,58 +86,61 @@ const Cours = () => {
 
   if (selectedLevel) {
     return (
-      <div className="min-h-screen bg-gray-50 pb-16 md:pt-16 md:pb-0">
-        {/* Header */}
-        <div className="bg-white shadow-sm sticky top-0 md:top-16">
+      <div className="min-h-screen bg-[#e5ddd5] pb-16 md:pt-16 md:pb-0">
+        {/* Header - Style WhatsApp */}
+        <div className="bg-[#25d366] text-white sticky top-0 md:top-16 z-40">
           <div className="flex items-center p-4">
             <button
               onClick={() => setSelectedLevel(null)}
-              className="mr-3 p-2 hover:bg-gray-100 rounded-full transition-colors"
+              className="mr-3 p-2 hover:bg-white/10 rounded-full transition-colors"
             >
               <ArrowLeft size={20} />
             </button>
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-edu-primary rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm">
-                  {selectedLevel.name.charAt(0)}
-                </span>
-              </div>
-              <div>
-                <h1 className="font-semibold">{selectedLevel.name}</h1>
-                <p className="text-sm text-gray-600">{selectedLevel.description}</p>
-              </div>
+            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mr-3">
+              <span className="text-white font-bold text-sm">
+                {selectedLevel.name.charAt(0)}
+              </span>
+            </div>
+            <div>
+              <h1 className="font-semibold text-lg">{selectedLevel.name}</h1>
+              <p className="text-sm text-white/80">{selectedLevel.description}</p>
             </div>
           </div>
         </div>
 
-        {/* Lessons List */}
-        <div className="p-4 space-y-2">
-          {selectedLevel.lessons.map((lesson) => (
+        {/* Lessons List - Style WhatsApp */}
+        <div className="divide-y divide-gray-200">
+          {selectedLevel.lessons.map((lesson, index) => (
             <div
               key={lesson.id}
               onClick={() => setSelectedLesson(lesson)}
-              className="bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow cursor-pointer"
+              className="bg-white hover:bg-gray-50 cursor-pointer transition-colors"
             >
-              <div className="flex items-center space-x-3">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  lesson.completed ? 'bg-green-500' : 'bg-gray-300'
+              <div className="flex items-center p-4">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center mr-3 ${
+                  lesson.completed ? 'bg-[#25d366]' : 'bg-gray-300'
                 }`}>
                   {lesson.completed ? (
-                    <span className="text-white text-sm">✓</span>
+                    <span className="text-white text-lg">✓</span>
                   ) : (
-                    <Play size={14} className="text-gray-600" />
+                    <Play size={16} className="text-gray-600" />
                   )}
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-medium">{lesson.title}</h3>
-                  <div className="flex items-center space-x-2 text-sm text-gray-500">
-                    <Clock size={12} />
-                    <span>{lesson.duration}</span>
+                
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="font-medium text-gray-900 truncate">{lesson.title}</h3>
+                    <div className="flex items-center space-x-1 text-xs text-gray-500 flex-shrink-0">
+                      <Clock size={12} />
+                      <span>{lesson.duration}</span>
+                    </div>
                   </div>
+                  <p className="text-sm text-gray-600">
+                    {lesson.completed ? 'Leçon terminée' : 'En cours'}
+                  </p>
                 </div>
-                {!lesson.completed && (
-                  <div className="w-3 h-3 bg-edu-primary rounded-full animate-pulse"></div>
-                )}
+                
+                <ChevronRight size={16} className="text-gray-400 ml-2" />
               </div>
             </div>
           ))}
@@ -139,47 +151,56 @@ const Cours = () => {
 
   if (selectedFormation) {
     return (
-      <div className="min-h-screen bg-gray-50 pb-16 md:pt-16 md:pb-0">
-        {/* Header */}
-        <div className="bg-white shadow-sm sticky top-0 md:top-16">
+      <div className="min-h-screen bg-[#e5ddd5] pb-16 md:pt-16 md:pb-0">
+        {/* Header - Style WhatsApp */}
+        <div className="bg-[#25d366] text-white sticky top-0 md:top-16 z-40">
           <div className="flex items-center p-4">
             <button
               onClick={() => setSelectedFormation(null)}
-              className="mr-3 p-2 hover:bg-gray-100 rounded-full transition-colors"
+              className="mr-3 p-2 hover:bg-white/10 rounded-full transition-colors"
             >
               <ArrowLeft size={20} />
             </button>
+            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mr-3">
+              <span className="text-white font-bold text-sm">
+                {selectedFormation.title.charAt(0)}
+              </span>
+            </div>
             <div>
-              <h1 className="font-semibold">{selectedFormation.title}</h1>
-              <p className="text-sm text-gray-600">Par {selectedFormation.author}</p>
+              <h1 className="font-semibold text-lg">{selectedFormation.title}</h1>
+              <p className="text-sm text-white/80">Par {selectedFormation.author}</p>
             </div>
           </div>
         </div>
 
-        {/* Levels List (WhatsApp Style) */}
-        <div className="p-4 space-y-2">
+        {/* Levels List - Style WhatsApp */}
+        <div className="divide-y divide-gray-200">
           {selectedFormation.levels.map((level) => (
             <div
               key={level.id}
               onClick={() => setSelectedLevel(level)}
-              className="bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow cursor-pointer"
+              className="bg-white hover:bg-gray-50 cursor-pointer transition-colors"
             >
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-edu-secondary rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold">
+              <div className="flex items-center p-4">
+                <div className="w-12 h-12 bg-[#25d366] rounded-full flex items-center justify-center mr-3">
+                  <span className="text-white font-bold text-lg">
                     {level.name.charAt(0)}
                   </span>
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-medium">{level.name}</h3>
-                  <p className="text-sm text-gray-600">{level.description}</p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {level.lessons.length} leçon{level.lessons.length > 1 ? 's' : ''}
-                  </p>
+                
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="font-medium text-gray-900 truncate">{level.name}</h3>
+                    <span className="text-xs text-gray-500 flex-shrink-0">{level.timestamp}</span>
+                  </div>
+                  <p className="text-sm text-gray-600 truncate">{level.lastMessage}</p>
                 </div>
-                <div className="text-xs text-gray-400">
-                  {level.lessons.filter(l => l.completed).length}/{level.lessons.length}
-                </div>
+                
+                {level.unread > 0 && (
+                  <div className="ml-2 bg-[#25d366] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {level.unread}
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -207,8 +228,8 @@ const Cours = () => {
             className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow cursor-pointer overflow-hidden"
           >
             <div className="relative">
-              <div className="w-full h-48 bg-gradient-to-br from-edu-primary/10 to-edu-secondary/10 flex items-center justify-center">
-                <Play size={40} className="text-edu-primary" />
+              <div className="w-full h-48 bg-gradient-to-br from-[#25d366]/10 to-[#20c75a]/10 flex items-center justify-center">
+                <Play size={40} className="text-[#25d366]" />
               </div>
               <div className="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
                 {formation.progress}% complété
@@ -233,7 +254,7 @@ const Cours = () => {
               {/* Progress Bar */}
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
-                  className="bg-edu-primary h-2 rounded-full transition-all duration-300"
+                  className="bg-[#25d366] h-2 rounded-full transition-all duration-300"
                   style={{ width: `${formation.progress}%` }}
                 ></div>
               </div>
