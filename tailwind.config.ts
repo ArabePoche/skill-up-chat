@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,19 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Couleurs personnalisées pour l'application éducative
+				edu: {
+					primary: '#4F46E5', // Indigo moderne
+					secondary: '#06B6D4', // Cyan frais
+					accent: '#10B981', // Emerald pour validation
+					warning: '#F59E0B', // Amber pour notifications
+					chat: '#F3F4F6', // Gris clair pour les bulles
+					'chat-received': '#E5E7EB',
+					'chat-sent': '#4F46E5',
+					'whatsapp-green': '#25D366',
+					'tiktok-red': '#FF0050',
+					'amazon-orange': '#FF9900'
 				}
 			},
 			borderRadius: {
@@ -84,11 +98,40 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'fade-in': {
+					'0%': {
+						opacity: '0',
+						transform: 'translateY(10px)'
+					},
+					'100%': {
+						opacity: '1',
+						transform: 'translateY(0)'
+					}
+				},
+				'slide-up': {
+					'0%': {
+						transform: 'translateY(100%)'
+					},
+					'100%': {
+						transform: 'translateY(0)'
+					}
+				},
+				'bounce-subtle': {
+					'0%, 100%': {
+						transform: 'translateY(0)'
+					},
+					'50%': {
+						transform: 'translateY(-2px)'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-in': 'fade-in 0.3s ease-out',
+				'slide-up': 'slide-up 0.3s ease-out',
+				'bounce-subtle': 'bounce-subtle 2s infinite'
 			}
 		}
 	},
