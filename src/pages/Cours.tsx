@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { ArrowLeft, Play, Users, Star, Clock, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Play, Users, Star, Clock, ChevronRight, GraduationCap, UserCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ChatInterface from '@/components/ChatInterface';
 import TeacherView from '@/components/TeacherView';
@@ -9,7 +8,9 @@ const Cours = () => {
   const [selectedFormation, setSelectedFormation] = useState(null);
   const [selectedLevel, setSelectedLevel] = useState(null);
   const [selectedLesson, setSelectedLesson] = useState(null);
-  const [userRole, setUserRole] = useState('student'); // 'student' ou 'teacher'
+  
+  // Simuler le rôle de l'utilisateur - dans une vraie app, cela viendrait de l'auth
+  const userRole = 'teacher'; // 'student' ou 'teacher'
 
   // Données de démonstration
   const formations = [
@@ -73,6 +74,31 @@ const Cours = () => {
           lessons: [
             { id: 6, title: 'Qu\'est-ce que le Design Thinking ?', completed: true, duration: '12 min' },
             { id: 7, title: 'Les 5 étapes', completed: false, duration: '18 min' }
+          ]
+        }
+      ]
+    },
+    {
+      id: 3,
+      title: 'JavaScript Avancé',
+      author: 'Prof. Martin',
+      image: '/placeholder.svg',
+      progress: 80,
+      students: 234,
+      rating: 4.7,
+      isTeacher: false,
+      levels: [
+        {
+          id: 4,
+          name: 'Promises & Async',
+          avatar: '/placeholder.svg',
+          description: 'Programmation asynchrone',
+          lastMessage: 'Exercice async/await terminé',
+          timestamp: '16:45',
+          unread: 0,
+          lessons: [
+            { id: 8, title: 'Promises', completed: true, duration: '20 min' },
+            { id: 9, title: 'Async/Await', completed: true, duration: '25 min' }
           ]
         }
       ]
@@ -222,93 +248,103 @@ const Cours = () => {
     );
   }
 
+  // Séparer les formations selon le rôle
+  const studentFormations = formations.filter(formation => !formation.isTeacher);
+  const teacherFormations = formations.filter(formation => formation.isTeacher);
+
+  const FormationCard = ({ formation, isTeacherSection = false }) => (
+    <div
+      onClick={() => setSelectedFormation(formation)}
+      className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow cursor-pointer overflow-hidden"
+    >
+      <div className="relative">
+        <div className="w-full h-32 sm:h-48 bg-gradient-to-br from-[#25d366]/10 to-[#20c75a]/10 flex items-center justify-center">
+          <Play size={32} className="text-[#25d366] sm:w-10 sm:h-10" />
+        </div>
+        <div className="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
+          {isTeacherSection ? `${formation.students} élèves` : `${formation.progress}% complété`}
+        </div>
+        {isTeacherSection && (
+          <div className="absolute top-2 left-2 bg-[#25d366] text-white px-2 py-1 rounded text-xs">
+            👨‍🏫 Professeur
+          </div>
+        )}
+      </div>
+
+      <div className="p-3 sm:p-4">
+        <h3 className="font-semibold text-base sm:text-lg mb-2 line-clamp-2">{formation.title}</h3>
+        <p className="text-sm text-gray-600 mb-3">Par {formation.author}</p>
+        
+        <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
+          <div className="flex items-center space-x-1">
+            <Users size={14} />
+            <span className="text-xs sm:text-sm">{formation.students} étudiants</span>
+          </div>
+          <div className="flex items-center space-x-1">
+            <Star size={14} className="text-yellow-400 fill-current" />
+            <span className="text-xs sm:text-sm">{formation.rating}</span>
+          </div>
+        </div>
+
+        {/* Progress Bar - seulement pour les élèves */}
+        {!isTeacherSection && (
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-[#25d366] h-2 rounded-full transition-all duration-300"
+              style={{ width: `${formation.progress}%` }}
+            ></div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gray-50 pb-16 md:pt-16 md:pb-0">
-      {/* Header avec toggle prof/élève */}
-      <div className="bg-white shadow-sm sticky top-0 md:top-16">
+      {/* Header responsive */}
+      <div className="bg-white shadow-sm sticky top-0 md:top-16 z-30">
         <div className="p-4">
-          <div className="flex items-center justify-between mb-2">
-            <div>
-              <h1 className="text-2xl font-bold">Mes Formations</h1>
-              <p className="text-gray-600">Continuez votre apprentissage</p>
-            </div>
-            <div className="flex bg-gray-100 rounded-lg p-1">
-              <button
-                onClick={() => setUserRole('student')}
-                className={`px-3 py-1 rounded text-sm transition-colors ${
-                  userRole === 'student' 
-                    ? 'bg-[#25d366] text-white' 
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                👨‍🎓 Élève
-              </button>
-              <button
-                onClick={() => setUserRole('teacher')}
-                className={`px-3 py-1 rounded text-sm transition-colors ${
-                  userRole === 'teacher' 
-                    ? 'bg-[#25d366] text-white' 
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                👨‍🏫 Prof
-              </button>
-            </div>
-          </div>
+          <h1 className="text-xl sm:text-2xl font-bold">Mes Formations</h1>
+          <p className="text-sm sm:text-base text-gray-600">Continuez votre apprentissage</p>
         </div>
       </div>
 
-      {/* Formations Cards */}
-      <div className="p-4 space-y-4">
-        {formations
-          .filter(formation => userRole === 'teacher' ? formation.isTeacher : !formation.isTeacher)
-          .map((formation) => (
-          <div
-            key={formation.id}
-            onClick={() => setSelectedFormation(formation)}
-            className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow cursor-pointer overflow-hidden"
-          >
-            <div className="relative">
-              <div className="w-full h-48 bg-gradient-to-br from-[#25d366]/10 to-[#20c75a]/10 flex items-center justify-center">
-                <Play size={40} className="text-[#25d366]" />
-              </div>
-              <div className="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
-                {userRole === 'teacher' ? `${formation.students} élèves` : `${formation.progress}% complété`}
-              </div>
-              {formation.isTeacher && (
-                <div className="absolute top-2 left-2 bg-[#25d366] text-white px-2 py-1 rounded text-xs">
-                  👨‍🏫 Professeur
-                </div>
-              )}
+      <div className="p-4 space-y-6">
+        {/* Section Mes cours suivis (toujours visible) */}
+        <div>
+          <div className="flex items-center space-x-2 mb-4">
+            <GraduationCap size={20} className="text-[#25d366]" />
+            <h2 className="text-lg sm:text-xl font-semibold">Mes cours suivis</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {studentFormations.map((formation) => (
+              <FormationCard 
+                key={`student-${formation.id}`} 
+                formation={formation} 
+                isTeacherSection={false} 
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Section Espace enseignant (seulement si l'utilisateur est prof) */}
+        {userRole === 'teacher' && teacherFormations.length > 0 && (
+          <div>
+            <div className="flex items-center space-x-2 mb-4">
+              <UserCheck size={20} className="text-[#25d366]" />
+              <h2 className="text-lg sm:text-xl font-semibold">Espace enseignant</h2>
             </div>
-
-            <div className="p-4">
-              <h3 className="font-semibold text-lg mb-2">{formation.title}</h3>
-              <p className="text-sm text-gray-600 mb-3">Par {formation.author}</p>
-              
-              <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
-                <div className="flex items-center space-x-1">
-                  <Users size={14} />
-                  <span>{formation.students} étudiants</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <Star size={14} className="text-yellow-400 fill-current" />
-                  <span>{formation.rating}</span>
-                </div>
-              </div>
-
-              {/* Progress Bar - seulement pour les élèves */}
-              {!formation.isTeacher && (
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-[#25d366] h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${formation.progress}%` }}
-                  ></div>
-                </div>
-              )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {teacherFormations.map((formation) => (
+                <FormationCard 
+                  key={`teacher-${formation.id}`} 
+                  formation={formation} 
+                  isTeacherSection={true} 
+                />
+              ))}
             </div>
           </div>
-        ))}
+        )}
       </div>
     </div>
   );
